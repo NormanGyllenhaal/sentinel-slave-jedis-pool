@@ -19,6 +19,12 @@ public class JedisSentinelSlavePool extends Pool<Jedis> {
 
     protected int timeout = Protocol.DEFAULT_TIMEOUT;
 
+    protected int connectionTimeout = Protocol.DEFAULT_TIMEOUT;
+    protected int soTimeout = Protocol.DEFAULT_TIMEOUT;
+
+
+    protected String clientName;
+
     protected String password;
 
     protected int database = Protocol.DEFAULT_DATABASE;
@@ -130,8 +136,8 @@ public class JedisSentinelSlavePool extends Pool<Jedis> {
             currentHostMaster = master;
             log.info("Created JedisPool to master at " + master);
             initPool(poolConfig,
-                    new JedisFactory(master.getHost(), master.getPort(),
-                            timeout, password, database));
+                    new JedisFactory(master.getHost(), master.getPort(), connectionTimeout,
+                            soTimeout, password, database, clientName, false, null, null, null));
         }
     }
 
@@ -141,8 +147,8 @@ public class JedisSentinelSlavePool extends Pool<Jedis> {
         if (!currentSlaves.contains(slave)) {
             currentSlaves.add(slave);
             log.info("add a redis slave" + slave);
-            GenericObjectPool<Jedis> pool = new GenericObjectPool<Jedis>(new JedisFactory(slave.getHost(), slave.getPort(),
-                    timeout, password, database), poolConfig);
+            GenericObjectPool<Jedis> pool = new GenericObjectPool<Jedis>( new JedisFactory(slave.getHost(), slave.getPort(), connectionTimeout,
+                    soTimeout, password, database, clientName, false, null, null, null), poolConfig);
             slavePools.put(slave.getHost() + ":" + slave.getPort(), pool);
         } else {
             log.info("redis slave already contain：" + slave);
@@ -168,8 +174,8 @@ public class JedisSentinelSlavePool extends Pool<Jedis> {
             }
             log.info("init redis slaves :" + slaves);
             for (HostAndPort slave : slaves) {
-                GenericObjectPool<Jedis> pool = new GenericObjectPool<Jedis>(new JedisFactory(slave.getHost(),
-                        slave.getPort(), timeout, password, database), poolConfig);
+                GenericObjectPool<Jedis> pool = new GenericObjectPool<Jedis>(new JedisFactory(slave.getHost(), slave.getPort(), connectionTimeout,
+                        soTimeout, password, database, clientName, false, null, null, null), poolConfig);
                 slavePools.put(slave.getHost() + ":" + slave.getPort(), pool);
             }
         }
